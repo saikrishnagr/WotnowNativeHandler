@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+  id="com.cordova.wotnow"
+  version="0.0.1">
+
+    <name>NativeHandler</name>
+    <description>Wotnow specific Native call Plug-in</description>
+    <author>WotNow</author>
+    <license>Apache 2.0 License</license>
+    <engines>
+        <engine name="cordova" version=">=3.5.0" />
+    </engines>
+    <!--<js-module src="www/hello_world.js" name="helloworld">
+        <clobbers target="HelloWorld" />
+    </js-module>-->
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="NativeHandler"> 
+                <param name="android-package" value="com.cordova.wotnow.NativeHandler"/>
+            </feature>
+        </config-file>
+        <source-file src="src/android/AbstractGetNameTask.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/AppLocationService.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/CClocation.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/Config.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/Contacts.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/Events.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/FbEvents.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/FirstPage.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/GCMIntentService.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/GetNameInForeground.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/HMSHostApplication.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/HomeActivity.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/IntegratingFacebookApplication.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/LoginActivity.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/MainActivity.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/NativeHandler.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/RegisterActivity.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/Request_Token_Activity.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/UserDetailsActivity.java" target-dir="src/com/cordova/wotnow" />
+		<source-file src="src/android/db/DBOpenHelper.java" target-dir="src/com/cordova/wotnow/db" />
+		<source-file src="src/android/db/EventModel.java" target-dir="src/com/cordova/wotnow/db" />
+		<source-file src="src/android/db/EventsReminderHandler.java" target-dir="src/com/cordova/wotnow/db" />
+		<source-file src="src/android/receiver/AlarmReceiver.java" target-dir="src/com/cordova/wotnow/db" />
+		<source-file src="src/android/reveiver/OnBootReceiver.java" target-dir="src/com/cordova/wotnow/db" /> 
+    </platform>
+
+</plugin>

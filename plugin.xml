@@ -43,7 +43,7 @@
 		<source-file src="src/android/db/EventModel.java" target-dir="src/com/cordova/wotnow/db" />
 		<source-file src="src/android/db/EventsReminderHandler.java" target-dir="src/com/cordova/wotnow/db" />
 		<source-file src="src/android/receiver/AlarmReceiver.java" target-dir="src/com/cordova/wotnow/db" />
-		<source-file src="src/android/reveiver/OnBootReceiver.java" target-dir="src/com/cordova/wotnow/db" /> 
+		<source-file src="src/android/receiver/OnBootReceiver.java" target-dir="src/com/cordova/wotnow/db" /> 
     </platform>
 
 </plugin>

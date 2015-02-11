@@ -24,7 +24,11 @@
 		<source-file src="src/android/lib/android-support-v4.jar" target-dir="libs" framework="true" />    
 		<source-file src="src/android/lib/gson-1.7.1.jar" target-dir="libs" framework="true" />    
 		<source-file src="src/android/lib/Parse-1.7.1.jar" target-dir="libs" framework="true" />    
+		<source-file src="src/android/lib/facebook.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/google-play-services.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/signpost-commonshttp-1.2.1.1.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/signpost-core-1.2.1.2.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/oauth.jar" target-dir="libs" framework="true" />  
      
         <source-file src="src/android/AbstractGetNameTask.java" target-dir="src/com/cordova/wotnow" />
 		<source-file src="src/android/AppLocationService.java" target-dir="src/com/cordova/wotnow" />

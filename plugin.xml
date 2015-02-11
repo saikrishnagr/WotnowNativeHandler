@@ -29,6 +29,7 @@
 		<source-file src="src/android/lib/signpost-commonshttp-1.2.1.1.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/signpost-core-1.2.1.2.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/oauth.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/cordova-2.9.0.jar" target-dir="libs" framework="true" />  
      
         <source-file src="src/android/AbstractGetNameTask.java" target-dir="src/com/cordova/wotnow" />
 		<source-file src="src/android/AppLocationService.java" target-dir="src/com/cordova/wotnow" />

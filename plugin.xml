@@ -20,6 +20,11 @@
                 <param name="android-package" value="com.cordova.wotnow.NativeHandler"/>
             </feature>
         </config-file>
+		<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />    
+		<source-file src="src/android/lib/android-support-v4.jar" target-dir="libs" framework="true" />    
+		<source-file src="src/android/lib/gson-1.7.1.jar" target-dir="libs" framework="true" />    
+		<source-file src="src/android/lib/Parse-1.7.1.jar" target-dir="libs" framework="true" />    
+     
         <source-file src="src/android/AbstractGetNameTask.java" target-dir="src/com/cordova/wotnow" />
 		<source-file src="src/android/AppLocationService.java" target-dir="src/com/cordova/wotnow" />
 		<source-file src="src/android/CClocation.java" target-dir="src/com/cordova/wotnow" />

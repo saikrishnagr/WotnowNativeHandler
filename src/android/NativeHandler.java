@@ -104,10 +104,10 @@ public class NativeHandler extends CordovaPlugin {
 		PluginResult result = null;
 		JSONObject profileData = null;
 		String eventsJson;
-
+		Log.d("----------Action called is ---------- ", action);
 		if (Google_Sign_In.equals(action)) {
 			try {
-				Log.v("-------------Google Sign in called ------------ ", action);
+				Log.d("-------------Google Sign in called ------------ ", action);
 				String email = AbstractGetNameTask.emailId;
 				Log.v("Native-Email", email);
 				profileData = new JSONObject(

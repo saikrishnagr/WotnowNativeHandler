@@ -17,7 +17,7 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="NativeHandler"> 
-                <param name="android-package" value="com.cordova.wotnow.NativeHandler"/>
+                <param name="android-package" value="com.google.profile.NativeHandler"/>
             </feature>
         </config-file>
 		<!--<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />    -->

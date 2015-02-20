@@ -18,7 +18,7 @@ public class RegisterActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register);
+//        setContentView(R.layout.activity_register);
          
         //Get Global Controller Class object (see application tag in AndroidManifest.xml)
         final HMSHostApplication aController = (HMSHostApplication) getApplicationContext();
@@ -49,9 +49,9 @@ public class RegisterActivity extends Activity {
              return;
         }
          
-        txtName = (EditText) findViewById(R.id.txtName);
-        txtEmail = (EditText) findViewById(R.id.txtEmail);
-        btnRegister = (Button) findViewById(R.id.btnRegister);
+//        txtName = (EditText) findViewById(R.id.txtName);
+//        txtEmail = (EditText) findViewById(R.id.txtEmail);
+//        btnRegister = (Button) findViewById(R.id.btnRegister);
          
         // Click event on Register button
         btnRegister.setOnClickListener(new View.OnClickListener() {

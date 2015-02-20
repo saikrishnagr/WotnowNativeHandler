@@ -33,14 +33,14 @@ public class UserDetailsActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.userdetails);
-
-		userProfilePictureView = (ProfilePictureView) findViewById(R.id.userProfilePicture);
-		userNameView = (TextView) findViewById(R.id.userName);
-		userGenderView = (TextView) findViewById(R.id.userGender);
-		userEmailView = (TextView) findViewById(R.id.userEmail);
-
-		logoutButton = (Button) findViewById(R.id.logoutButton);
+//		setContentView(R.layout.userdetails);
+//
+//		userProfilePictureView = (ProfilePictureView) findViewById(R.id.userProfilePicture);
+//		userNameView = (TextView) findViewById(R.id.userName);
+//		userGenderView = (TextView) findViewById(R.id.userGender);
+//		userEmailView = (TextView) findViewById(R.id.userEmail);
+//
+//		logoutButton = (Button) findViewById(R.id.logoutButton);
 		logoutButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {

@@ -51,7 +51,7 @@ public class Request_Token_Activity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+//		setContentView(R.layout.main);
 		callOAuth();
 		showDialog(PIN_DIALOG);
 		// createPinDialog().show();

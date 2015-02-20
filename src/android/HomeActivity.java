@@ -29,11 +29,11 @@ public class HomeActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		//setContentView(R.layout.activity_home);
-		imageProfile = (ImageView) findViewById(R.id.imageView1);
-		textViewName = (TextView) findViewById(R.id.textViewNameValue);
-		textViewEmail = (TextView) findViewById(R.id.textViewEmailValue);
-		textViewGender = (TextView) findViewById(R.id.textViewGenderValue);
-		textViewBirthday = (TextView) findViewById(R.id.textViewBirthdayValue);
+//		imageProfile = (ImageView) findViewById(R.id.imageView1);
+//		textViewName = (TextView) findViewById(R.id.textViewNameValue);
+//		textViewEmail = (TextView) findViewById(R.id.textViewEmailValue);
+//		textViewGender = (TextView) findViewById(R.id.textViewGenderValue);
+//		textViewBirthday = (TextView) findViewById(R.id.textViewBirthdayValue);
 
 		/**
 		 * get user email using intent

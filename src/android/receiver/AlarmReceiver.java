@@ -41,7 +41,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		NotificationManager mNM = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		String msg = eventModel.getEventName();
-		int icon = R.drawable.wotnow_logo;
+		int icon = R.drawable.icon;
 		long when = System.currentTimeMillis();
 
 		Notification notification = new Notification(icon, msg, when);

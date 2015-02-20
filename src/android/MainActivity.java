@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
 	@Override
     public void onCreate(Bundle savedInstanceState) { 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.gcmmain);
+//        setContentView(R.layout.gcmmain);
          
         //Get Global Controller Class object (see application tag in AndroidManifest.xml)
         aController = (HMSHostApplication) getApplicationContext();
@@ -58,7 +58,7 @@ public class MainActivity extends Activity {
         // Make sure the manifest permissions was properly set 
         GCMRegistrar.checkManifest(this);
  
-        lblMessage = (TextView) findViewById(R.id.lblMessage);
+//        lblMessage = (TextView) findViewById(R.id.lblMessage);
          
         // Register custom Broadcast receiver to show messages on activity
         registerReceiver(mHandleMessageReceiver, new IntentFilter(

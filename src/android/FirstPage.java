@@ -3,7 +3,6 @@ package com.google.profile;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -68,13 +67,7 @@ public class FirstPage extends DroidGap {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		Intent i = new Intent(this,Request_Token_Activity.class);
-		startActivity(i);
-		
-		
-		
-		super.loadUrl("file:///android_asset/wotnow/html/index.html");
+		super.loadUrl("file:///android_asset/www/index.html");
 
 		objCCl = new CClocation();
 		CClocation.setContext(FirstPage.this);

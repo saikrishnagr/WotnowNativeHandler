@@ -120,7 +120,7 @@ public class GCMIntentService extends GCMBaseIntentService {
     @SuppressWarnings("deprecation")
 	private static void generateNotification(Context context, String message) {
     	String msg = null;
-    	int icon = R.drawable.wotnow_logo;
+    	int icon = R.drawable.icon;
         long when = System.currentTimeMillis();
         Log.v("generateNotification---", message);
         NotificationManager notificationManager = (NotificationManager)

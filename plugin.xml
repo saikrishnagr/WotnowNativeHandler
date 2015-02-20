@@ -1,60 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-  id="com.cordova.wotnow"
+  id="com.google.profile"
   version="0.0.1">
 
-    <name>NativeHandler</name>
-    <description>Wotnow specific Native call Plug-in</description>
-    <author>WotNow</author>
-    <license>Apache 2.0 License</license>
-    <engines>
-        <engine name="cordova" version=">=3.5.0" />
-    </engines>
-    <!--<js-module src="www/hello_world.js" name="helloworld">
+	<name>NativeHandler</name>
+	<description>Wotnow specific Native call Plug-in</description>
+	<author>WotNow</author>
+	<license>Apache 2.0 License</license>
+	<engines>
+		<engine name="cordova" version=">=3.5.0" />
+	</engines>
+	<!--<js-module src="www/hello_world.js" name="helloworld">
         <clobbers target="HelloWorld" />
     </js-module>-->
 
-    <platform name="android">
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="NativeHandler"> 
-                <param name="android-package" value="com.cordova.wotnow.NativeHandler"/>
-            </feature>
-        </config-file>
-		<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />    
-		<source-file src="src/android/lib/android-support-v4.jar" target-dir="libs" framework="true" />    
+	<platform name="android">
+		<config-file target="res/xml/config.xml" parent="/*">
+			<feature name="NativeHandler"> 
+				<param name="android-package" value="com.google.profile.NativeHandler"/>
+			</feature>
+		</config-file>
+		<!--<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />-->
+		<source-file src="src/android/lib/android-support-v13.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/gson-1.7.1.jar" target-dir="libs" framework="true" />    
 		<source-file src="src/android/lib/Parse-1.7.1.jar" target-dir="libs" framework="true" />    
-		<source-file src="src/android/lib/facebook.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/facebooksdk.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/google-play-services.jar" target-dir="libs" framework="true" />  
-		<source-file src="src/android/lib/signpost-commonshttp-1.2.1.1.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/signpost-commonshttp4-1.2.1.2.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/signpost-core-1.2.1.2.jar" target-dir="libs" framework="true" />  
-		<source-file src="src/android/lib/oauth.jar" target-dir="libs" framework="true" />  
-		<source-file src="src/android/lib/cordova-2.9.0.jar" target-dir="libs" framework="true" />  
-     
-        <source-file src="src/android/AbstractGetNameTask.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/AppLocationService.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/CClocation.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/Config.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/Contacts.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/Events.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/FbEvents.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/FirstPage.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/GCMIntentService.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/GetNameInForeground.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/HMSHostApplication.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/HomeActivity.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/IntegratingFacebookApplication.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/LoginActivity.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/MainActivity.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/NativeHandler.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/RegisterActivity.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/Request_Token_Activity.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/UserDetailsActivity.java" target-dir="src/com/cordova/wotnow" />
-		<source-file src="src/android/db/DBOpenHelper.java" target-dir="src/com/cordova/wotnow/db" />
-		<source-file src="src/android/db/EventModel.java" target-dir="src/com/cordova/wotnow/db" />
-		<source-file src="src/android/db/EventsReminderHandler.java" target-dir="src/com/cordova/wotnow/db" />
-		<source-file src="src/android/receiver/AlarmReceiver.java" target-dir="src/com/cordova/wotnow/db" />
-		<source-file src="src/android/receiver/OnBootReceiver.java" target-dir="src/com/cordova/wotnow/db" /> 
-    </platform>
+		<source-file src="src/android/lib/google-api-client-1.19.1.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-api-client-android-1.19.1.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-api-services-calendar-v3-rev117-1.19.1.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-http-client-1.19.0.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-http-client-android-1.19.0.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-http-client-gson-1.19.0.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-http-client-jackson-1.19.0.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/google-oauth-client-1.19.0.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/guava-jdk5-13.0.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/jackson-core-2.1.3.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/java-json.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/cordova.jar" target-dir="libs" framework="true" />  
+		<source-file src="src/android/lib/bolts-android-1.1.3.jar" target-dir="libs" framework="true" />  
+		<!-- <source-file src="src/android/R.java" target-dir="src/com/google/profile" />-->
+		<source-file src="src/android/AbstractGetNameTask.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/AppLocationService.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/CClocation.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/Config.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/Contacts.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/Events.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/FbEvents.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/FirstPage.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/GCMIntentService.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/GetNameInForeground.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/HMSHostApplication.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/HomeActivity.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/IntegratingFacebookApplication.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/LoginActivity.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/MainActivity.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/NativeHandler.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/RegisterActivity.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/Request_Token_Activity.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/UserDetailsActivity.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/CalendarInfo.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/CalendarModel.java" target-dir="src/com/google/profile" />
+		<source-file src="src/android/db/DBOpenHelper.java" target-dir="src/com/google/profile/db" />
+		<source-file src="src/android/db/EventModel.java" target-dir="src/com/google/profile/db" />
+		<source-file src="src/android/db/EventsReminderHandler.java" target-dir="src/com/google/profile/db" />
+		<source-file src="src/android/receiver/AlarmReceiver.java" target-dir="src/com/google/profile/receiver" />
+		<source-file src="src/android/receiver/OnBootReceiver.java" target-dir="src/com/google/profile/receiver" /> 
+	</platform>
 
 </plugin>

@@ -3,11 +3,11 @@
         simple example build file
     </description>
 	<target name="copyfile" description="Copy Manifest and String.xml to the Platform Folder" >
-		<delete file="D:/AndroidApp/wotnow/platforms/android/AndroidManifest.xml"/>
-		<delete file="D:/AndroidApp/wotnow/platforms/android/res/values/strings.xml"/>
-		<delete file="D:/AndroidApp/wotnow/platforms/android/project.properties"/>
-		<copy file="D:/All_src_files/WotNow/AndroidManifest.xml"  tofile="D:/AndroidApp/wotnow/platforms/android/AndroidManifest.xml"/>
-		<copy file="D:/All_src_files/WotNow/res/values/strings.xml"  tofile="D:/AndroidApp/wotnow/platforms/android/res/values/strings.xml"/>
-		<copy file="D:/All_src_files/WotNow/project.properties"  tofile="D:/AndroidApp/wotnow/platforms/android/project.properties"/>
+		<delete file="platforms/android/AndroidManifest.xml"/>
+		<delete file="platforms/android/res/values/strings.xml"/>
+	<!--<delete file="D:/AndroidApp/wotnow/platforms/android/project.properties"/>-->
+		<copy file="plugins/com.google.profile/src/buildFiles/AndroidManifest.xml"  tofile="platforms/android/AndroidManifest.xml"/>
+		<copy file="plugins/com.google.profile/src/buildFiles/strings.xml"  tofile="platforms/android/res/values/strings.xml"/>
+		<!--<copy file="D:/All_src_files/WotNow/project.properties"  tofile="platforms/android/project.properties"/>-->
 	</target>
 </project>

@@ -64,7 +64,7 @@
 		<source-file src="src/android/receiver/OnBootReceiver.java" target-dir="src/com/google/profile/receiver" /> 
 		<source-file src="src/android/CalendarModel.java" target-dir="src/com/google/profile" /> 
 		<source-file src="src/android/CalendarInfo.java" target-dir="src/com/google/profile" /> 
-		<source-file src="src/\buildFiles/build.xml" target-dir="../.."/>
+		<!--<source-file src="src/buildFiles/build.xml" target-dir="../.."/>-->
 	</platform>
 
 </plugin>

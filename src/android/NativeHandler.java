@@ -91,6 +91,7 @@ public class NativeHandler extends CordovaPlugin {
 	public static final String Facebook = "facebookSignInAction";
 	public static final String Yahoo_Sign_In_Button_Click = "yahooSignInAction";
 	public static final String GetLocalContacts = "fetchTheDeviceContacts";
+	public static final String GetLocalContactsByName = "fetchTheDeviceContactsByName";
 	public static final String GetPhoneEvents = "AndroidEventSync";
 	public static final String DeviceId = "addApnsdevice";
 	public static final String sharemail = "shareemail";
@@ -155,7 +156,10 @@ public class NativeHandler extends CordovaPlugin {
 			Log.d(GetLocalContacts, "Contacts: " + action);
 			ContactsJson = getContactDetails();
 			callbackContext.success(ContactsJson);
-
+		} else if (GetLocalContactsByName.equals(action)) {
+			Log.d(GetLocalContactsByName, "Contacts: " + action);
+			ContactsJson = getContactDetailsByName(args.get(0).toString());
+			callbackContext.success(ContactsJson);
 		} else if (GetPhoneEvents.equals(action)) {
 			Log.d(GetPhoneEvents, "Phone Events: " + action);
 			eventsJson = getPhoneEvents();
@@ -302,14 +306,14 @@ public class NativeHandler extends CordovaPlugin {
 											ContactsContract.CommonDataKinds.Email.CONTACT_ID
 													+ " = ?",
 											new String[] { id }, null);
-							Log.e("Email id", emailCur.getCount() + "");
+							Log.d("Email id", emailCur.getCount() + "");
 							emailCur.moveToFirst();
 							if (emailCur.getCount() > 0) {
 								Email = emailCur
 										.getString(emailCur
 												.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
 								contacts.setEmail(Email);
-								Log.e("Email id", Email);
+								Log.d("Email id", Email);
 							} else {
 								Email = "$ Email";
 							}
@@ -336,6 +340,67 @@ public class NativeHandler extends CordovaPlugin {
 		 * (JSONException e) { // TODO Auto-generated catch block
 		 * e.printStackTrace(); }
 		 */
+		return gson.toJson(contactsObj);
+	}
+
+	/**
+	 * 
+	 * @param searchText
+	 * @return
+	 */
+	private String getContactDetailsByName(String searchText) {
+
+		ArrayList<Contacts> contactsObj;
+		Contacts contacts;
+		searchText = "%"+searchText+"%";
+		String SELECTION =	ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE '"+searchText+"' " 
+				/*" OR "+
+							ContactsContract.CommonDataKinds.Email.ADDRESS + " LIKE '"+searchText+"' " + "AND " +
+							ContactsContract.Data.MIMETYPE + " = '" + ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'"*/;
+
+		ContentResolver cr = cordova.getActivity().getContentResolver();
+		Cursor cur = cr.query(	ContactsContract.Contacts.CONTENT_URI, 
+								null,
+								SELECTION, 
+								null, 
+								null);
+
+		contactsObj = new ArrayList<Contacts>();
+
+		if (cur.getCount() > 0) {
+			while (cur.moveToNext()) {
+				contacts = new Contacts();
+				String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+
+				String Email = "";
+
+				String Names = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+				contacts.setNames(Names);
+				Cursor emailCur = cordova
+						.getActivity()
+						.getContentResolver()
+						.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+								null,
+								ContactsContract.CommonDataKinds.Email.CONTACT_ID
+										+ " = ?",
+								new String[] { id }, null);
+				Log.d("Email id", emailCur.getCount() + "");
+				emailCur.moveToFirst();
+				if (emailCur.getCount() > 0) {
+					Email = emailCur
+							.getString(emailCur
+									.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+					contacts.setEmail(Email);
+					Log.d("Email id", Email);
+				} else {
+					Email = "$ Email";
+				}
+				emailCur.close();
+				contactsObj.add(contacts);
+			}
+		}
+		cur.close();
+		Gson gson = new Gson();
 		return gson.toJson(contactsObj);
 	}
 

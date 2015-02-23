@@ -46,6 +46,7 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -66,8 +67,11 @@ import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
+import com.facebook.widget.FacebookDialog;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.plus.PlusShare;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
@@ -95,10 +99,12 @@ public class NativeHandler extends CordovaPlugin {
 	public static final String GetPhoneEvents = "AndroidEventSync";
 	public static final String DeviceId = "addApnsdevice";
 	public static final String sharemail = "shareemail";
-	public static final String sendSMS = "sendSMS";
+	public static final String sendSMS = "smsPostAction";
 	public static final String androiddatepicker = "androidDatePicker";
 	public static final String androidtimepicker = "androidTimePicker";
 	public static final String androidAddReminder = "androidAddReminder";
+	public static final String twitterShare = "twitterPostAction";
+	public static final String openBrowser = "openTheLinkInSafari";
 	public String date;
 	JSONObject FBDetails = new JSONObject();
 	private String userId;
@@ -106,6 +112,8 @@ public class NativeHandler extends CordovaPlugin {
 	ArrayList<FbEvents> eventsObj = null;
 	String fbEvents;
 	static final int DATE_DIALOG_ID = 999;
+
+	private UiLifecycleHelper uiHelper;
 
 	@Override
 	public boolean execute(String action, JSONArray args,
@@ -122,32 +130,103 @@ public class NativeHandler extends CordovaPlugin {
 		Log.d("----------Action called is ---------- ", action);
 		if (Google_Sign_In.equals(action)) {
 
-			try {
-				Log.d("-------------Google Sign in called ------------ ",
-						action);
-				String email = AbstractGetNameTask.emailId;
-				Log.v("Native-Email", email);
-				profileData = new JSONObject(
-						AbstractGetNameTask.GOOGLE_USER_DATA);
-				Log.v("GoogleResponse", profileData + "");
-				profileData.put("Email", email);
-				String isFBLogin = "YES";
-				profileData.put("isFirstTime", isFBLogin);
-				// Log.v("GoogleResponse+Email", profileData + "");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (args.getInt(0) == 1) {
+				Intent shareIntent = new PlusShare.Builder(
+						this.cordova.getActivity()).setType("text/plain")
+						.setText(args.getString(1))
+						.setContentUrl(Uri.parse("https://wotnow.me/"))
+						.getIntent();
+
+				this.cordova.getActivity().startActivityForResult(shareIntent,
+						0);
+			} else {
+				try {
+					Log.d("-------------Google Sign in called ------------ ",
+							action);
+					String email = AbstractGetNameTask.emailId;
+					profileData = new JSONObject(
+							AbstractGetNameTask.GOOGLE_USER_DATA);
+					Log.v("GoogleResponse", profileData + "");
+					profileData.put("Email", email);
+					String isFBLogin = "YES";
+					profileData.put("isFirstTime", isFBLogin);
+					// Log.v("GoogleResponse+Email", profileData + "");
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if (args.get(0).equals("2")) {
+					accessGoogleCalendar();
+					syncGoogleCalendar(callbackContext);
+				} else
+					callbackContext.success(profileData);
 			}
-			if (args.get(0).equals("2")) {
-				accessGoogleCalendar();
-				syncGoogleCalendar(callbackContext);
-
-			} else
-				callbackContext.success(profileData);
-
 		} else if (Facebook.equals(action)) {
 			Log.d(Facebook, "Facebook Sign In Button Clicked: " + action);
-			getFbDetails(callbackContext, args);
+			if (args.getInt(0) == 1) {
+				uiHelper = new UiLifecycleHelper(this.cordova.getActivity(),
+						null);
+				FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(
+						this.cordova.getActivity())
+						.setLink("https://wotnow.me")
+						.setDescription(args.getString(1)).build();
+				uiHelper.trackPendingDialogCall(shareDialog.present());
+
+				String urlToShare = args.getString(1);
+				Log.d("TEST", urlToShare);
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("text/plain"); //
+				intent.putExtra(Intent.EXTRA_SUBJECT, "Foo bar"); // NB: has
+				intent.putExtra(Intent.EXTRA_TEXT, urlToShare);
+
+				// See if official Facebook app is found boolean
+				boolean facebookAppFound = false;
+				List<ResolveInfo> matches = this.cordova.getActivity()
+						.getPackageManager().queryIntentActivities(intent, 0);
+				for (ResolveInfo info : matches) {
+					if (info.activityInfo.packageName.toLowerCase().startsWith(
+							"com.facebook.katana")) {
+						intent.setPackage(info.activityInfo.packageName);
+						facebookAppFound = true;
+						break;
+					}
+				}
+
+				// As fallback, launch sharer.php in a browser
+				if (!facebookAppFound) {
+					String sharerUrl = "https://www.facebook.com/sharer/sharer.php?u="
+							+ urlToShare;
+					intent = new Intent(Intent.ACTION_VIEW,
+							Uri.parse(sharerUrl));
+				}
+
+				this.cordova.getActivity().startActivity(intent);
+
+			} else
+				getFbDetails(callbackContext, args);
+		} else if (twitterShare.equals(action)) {
+			Intent intent = new Intent();
+			intent.setAction(Intent.ACTION_SEND);
+			intent.setType("text/plain");
+			intent.putExtra(Intent.EXTRA_TEXT, args.getString(0));
+			boolean facebookAppFound = false;
+			List<ResolveInfo> matches = this.cordova.getActivity()
+					.getPackageManager().queryIntentActivities(intent, 0);
+			for (ResolveInfo info : matches) {
+				if (info.activityInfo.packageName.toLowerCase().startsWith(
+						"com.twitter.android")) {
+					intent.setPackage(info.activityInfo.packageName);
+					facebookAppFound = true;
+					break;
+				}
+			}
+			Log.d("TEST", "" + facebookAppFound);
+			if(facebookAppFound)
+				this.cordova.getActivity().startActivity(intent);
+			else {
+				Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/share?text=" + args.getString(0)));
+				this.cordova.getActivity().startActivity(browserIntent);
+			}	
 		} else if (Yahoo_Sign_In_Button_Click.equals(action)) {
 			// private final Provider[] providers = new Provider[] {
 			// Provider.YAHOO };
@@ -180,8 +259,8 @@ public class NativeHandler extends CordovaPlugin {
 			 * Log.v("mailId", mailIds); Log.v("Message", msg);
 			 */
 			Log.v("Message", args.get(0) + "");
-			Log.v("Mailid", args.get(1) + "");
-			sendEmail(args, args.get(0).toString());
+//			Log.v("Mailid", args.get(1) + "");
+			sendEmail(args.get(0).toString());
 		} else if (androidAddReminder.equals(action)) {
 			JSONObject jsonObject = new JSONObject(args.get(0).toString());
 			jsonObject.getString("event_name");
@@ -222,6 +301,9 @@ public class NativeHandler extends CordovaPlugin {
 						}
 					}, mYear, mMonth, mDay);
 			dpd.show();
+		} else if (openBrowser.equals(action)) {
+			Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(args.get(0).toString()));
+			this.cordova.getActivity().startActivity(browserIntent);
 		} else {
 			try {
 				profileData = FirstPage.convertToJson();
@@ -352,29 +434,33 @@ public class NativeHandler extends CordovaPlugin {
 
 		ArrayList<Contacts> contactsObj;
 		Contacts contacts;
-		searchText = "%"+searchText+"%";
-		String SELECTION =	ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE '"+searchText+"' " 
-				/*" OR "+
-							ContactsContract.CommonDataKinds.Email.ADDRESS + " LIKE '"+searchText+"' " + "AND " +
-							ContactsContract.Data.MIMETYPE + " = '" + ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'"*/;
+		searchText = "%" + searchText + "%";
+		String SELECTION = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY
+				+ " LIKE '" + searchText + "' "
+		/*
+		 * " OR "+ ContactsContract.CommonDataKinds.Email.ADDRESS +
+		 * " LIKE '"+searchText+"' " + "AND " + ContactsContract.Data.MIMETYPE +
+		 * " = '" + ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE +
+		 * "'"
+		 */;
 
 		ContentResolver cr = cordova.getActivity().getContentResolver();
-		Cursor cur = cr.query(	ContactsContract.Contacts.CONTENT_URI, 
-								null,
-								SELECTION, 
-								null, 
-								null);
+		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
+				SELECTION, null, null);
 
 		contactsObj = new ArrayList<Contacts>();
 
 		if (cur.getCount() > 0) {
 			while (cur.moveToNext()) {
 				contacts = new Contacts();
-				String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+				String id = cur.getString(cur
+						.getColumnIndex(ContactsContract.Contacts._ID));
 
 				String Email = "";
 
-				String Names = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+				String Names = cur
+						.getString(cur
+								.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 				contacts.setNames(Names);
 				Cursor emailCur = cordova
 						.getActivity()
@@ -382,8 +468,7 @@ public class NativeHandler extends CordovaPlugin {
 						.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
 								null,
 								ContactsContract.CommonDataKinds.Email.CONTACT_ID
-										+ " = ?",
-								new String[] { id }, null);
+										+ " = ?", new String[] { id }, null);
 				Log.d("Email id", emailCur.getCount() + "");
 				emailCur.moveToFirst();
 				if (emailCur.getCount() > 0) {
@@ -694,7 +779,8 @@ public class NativeHandler extends CordovaPlugin {
 
 					String removeGmt1 = DateToStr4.replace("GMT", "");
 
-					String strEndDate = DateToStr3;//	+ removeCharAt(removeGmt1, 3);
+					String strEndDate = DateToStr3;// + removeCharAt(removeGmt1,
+													// 3);
 					events.setEndDate(strEndDate);
 				}
 
@@ -914,20 +1000,20 @@ public class NativeHandler extends CordovaPlugin {
 		cordova.getActivity().startActivity(sendIntent);
 	}
 
-	private void sendEmail(JSONArray args, String msg) {
-		String emailID = null;
-		for (int i = 0; i < args.length(); i++) {
-			try {
-				emailID = args.get(i).toString();
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
+	private void sendEmail(String msg) {
+//		String emailID = null;
+//		for (int i = 0; i < args.length(); i++) {
+//			try {
+//				emailID = args.get(i).toString();
+//			} catch (JSONException e) {
+//				e.printStackTrace();
+//			}
+//		}
 
 		Intent email = new Intent(Intent.ACTION_SEND);
-		email.putExtra(Intent.EXTRA_EMAIL,
-				new String[] { emailID.substring(1, emailID.length() - 1)
-						.trim() });
+//		email.putExtra(Intent.EXTRA_EMAIL,
+//				new String[] { emailID.substring(1, emailID.length() - 1)
+//						.trim() });
 		email.putExtra(Intent.EXTRA_SUBJECT, "WOTNOW");
 		email.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(msg));
 		email.setType("text/html");

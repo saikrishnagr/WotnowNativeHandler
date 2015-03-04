@@ -17,7 +17,7 @@
        under the License.
  */
 
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import android.os.Bundle;
 import org.apache.cordova.*;

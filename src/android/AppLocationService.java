@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import android.app.Service;
 import android.content.Context;

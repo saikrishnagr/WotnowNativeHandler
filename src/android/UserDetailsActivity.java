@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import org.json.JSONException;
 import org.json.JSONObject;

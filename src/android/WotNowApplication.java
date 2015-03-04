@@ -25,7 +25,7 @@ import android.net.NetworkInfo;
 import android.os.PowerManager;
 import android.util.Log;
 
-public class HMSHostApplication extends Application{
+public class WotNowApplication extends Application{
 	
 	private  final int MAX_ATTEMPTS = 5;
     private  final int BACKOFF_MILLI_SECONDS = 2000;

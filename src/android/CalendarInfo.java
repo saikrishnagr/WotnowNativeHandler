@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import com.google.api.client.util.Objects;
 import com.google.api.services.calendar.model.Calendar;

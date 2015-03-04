@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 public interface Config {
 

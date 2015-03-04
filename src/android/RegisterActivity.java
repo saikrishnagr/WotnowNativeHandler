@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
  
 import android.app.Activity;
 import android.content.Intent;
@@ -21,7 +21,7 @@ public class RegisterActivity extends Activity {
 //        setContentView(R.layout.activity_register);
          
         //Get Global Controller Class object (see application tag in AndroidManifest.xml)
-        final HMSHostApplication aController = (HMSHostApplication) getApplicationContext();
+        final WotNowApplication aController = (WotNowApplication) getApplicationContext();
          
         // Check if Internet Connection present
         if (!aController.isConnectingToInternet()) {

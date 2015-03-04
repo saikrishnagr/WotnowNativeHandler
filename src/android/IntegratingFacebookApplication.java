@@ -1,7 +1,8 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import android.app.Application;
 
+import com.alltivity.wotnow.R;
 import com.parse.Parse;
 import com.parse.ParseFacebookUtils;
 

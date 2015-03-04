@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import com.google.api.services.calendar.model.Calendar;
 import com.google.api.services.calendar.model.CalendarListEntry;

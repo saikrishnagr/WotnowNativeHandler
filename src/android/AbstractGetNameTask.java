@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

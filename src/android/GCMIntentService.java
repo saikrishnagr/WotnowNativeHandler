@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
  
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,12 +11,13 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.google.android.gcm.GCMBaseIntentService;
+import com.alltivity.wotnow.R;
  
 public class GCMIntentService extends GCMBaseIntentService {
  
     private static final String TAG = "GCMIntentService";
      
-    private HMSHostApplication aController = null;
+    private WotNowApplication aController = null;
     public static String Url;
  
     public GCMIntentService() {
@@ -32,7 +33,7 @@ public class GCMIntentService extends GCMBaseIntentService {
          
         //Get Global Controller Class object (see application tag in AndroidManifest.xml)
         if(aController == null)
-           aController = (HMSHostApplication) getApplicationContext();
+           aController = (WotNowApplication) getApplicationContext();
          
         Log.i(TAG, "Device registered: regId = " + registrationId);
         aController.displayMessageOnScreen(context,"Your device registred with GCM id - " + registrationId);
@@ -46,7 +47,7 @@ public class GCMIntentService extends GCMBaseIntentService {
     @Override
     protected void onUnregistered(Context context, String registrationId) {
         if(aController == null)
-            aController = (HMSHostApplication) getApplicationContext();
+            aController = (WotNowApplication) getApplicationContext();
         Log.v(TAG, "Device unregistered");
         aController.displayMessageOnScreen(context, 
                                             getString(R.string.gcm_unregistered));
@@ -60,14 +61,15 @@ public class GCMIntentService extends GCMBaseIntentService {
     protected void onMessage(Context context, Intent intent) {
          
         if(aController == null)
-            aController = (HMSHostApplication) getApplicationContext();
+            aController = (WotNowApplication) getApplicationContext();
          
         Log.v(TAG, "Received message");
         String message = intent.getExtras().getString("message");
-        Log.v(TAG, message);
+        String url = intent.getExtras().getString("url");
+        Log.v(TAG, url);
         aController.displayMessageOnScreen(context, message);
         // notifies user
-        generateNotification(context, message);
+        generateNotification(context, message, url);
     }
  
     /**
@@ -77,13 +79,13 @@ public class GCMIntentService extends GCMBaseIntentService {
     protected void onDeletedMessages(Context context, int total) {
          
         if(aController == null)
-            aController = (HMSHostApplication) getApplicationContext();
+            aController = (WotNowApplication) getApplicationContext();
          
         Log.v(TAG, "Received deleted messages notification");
         String message = getString(R.string.gcm_deleted, total);
         aController.displayMessageOnScreen(context, message);
         // notifies user
-        generateNotification(context, message);
+        generateNotification(context, message, "");
     }
  
     /**
@@ -93,7 +95,7 @@ public class GCMIntentService extends GCMBaseIntentService {
     public void onError(Context context, String errorId) {
          
         if(aController == null)
-            aController = (HMSHostApplication) getApplicationContext();
+            aController = (WotNowApplication) getApplicationContext();
          
         Log.v(TAG, "Received error: " + errorId);
         aController.displayMessageOnScreen(context, 
@@ -104,7 +106,7 @@ public class GCMIntentService extends GCMBaseIntentService {
     protected boolean onRecoverableError(Context context, String errorId) {
          
         if(aController == null)
-            aController = (HMSHostApplication) getApplicationContext();
+            aController = (WotNowApplication) getApplicationContext();
          
         // log message
         Log.v(TAG, "Received recoverable error: " + errorId);
@@ -118,14 +120,16 @@ public class GCMIntentService extends GCMBaseIntentService {
      * Create a notification to inform the user that server has sent a message.
      */
     @SuppressWarnings("deprecation")
-	private static void generateNotification(Context context, String message) {
+	private static void generateNotification(Context context, String message, String url) {
+        Log.v("Url--->", url);
+        Log.v("Message--->", message);
     	String msg = null;
     	int icon = R.drawable.icon;
         long when = System.currentTimeMillis();
         Log.v("generateNotification---", message);
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
-        try {
+        /*try {
 			@SuppressWarnings("deprecation")
 			JSONObject mJsonObject = new JSONObject(message);
 			 msg = mJsonObject.getString("message");
@@ -135,25 +139,24 @@ public class GCMIntentService extends GCMBaseIntentService {
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
         
-		Notification notification = new Notification(icon, msg, when);
+		Notification notification = new Notification(icon, message, when);
          
         String title = context.getString(R.string.app_name);
          
         Intent notificationIntent = new Intent(context, FirstPage.class);
        // String Url = "Url:" + url;
         notificationIntent.putExtra("KEY", "somthing");
-        notificationIntent.putExtra("URL", Url);
+        notificationIntent.putExtra("URL", url);
        /* notificationIntent.putExtra("Url", url);*/
         // set intent so it does not start a new activity
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
-        context.startActivity(notificationIntent);
+   /*     notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                Intent.FLAG_ACTIVITY_SINGLE_TOP);*/
+       /* notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
+        context.startActivity(notificationIntent);*/
         
-        PendingIntent intent =
-                PendingIntent.getActivity(context, 0, notificationIntent, 0);
+        PendingIntent intent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
         notification.setLatestEventInfo(context, title, msg, intent);
         notification.flags |= Notification.FLAG_AUTO_CANCEL;
          

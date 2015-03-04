@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -20,7 +20,7 @@ import com.google.android.gcm.GCMRegistrar;
 public class MainActivity extends Activity {
 	// label to display gcm messages
 	TextView lblMessage;
-	HMSHostApplication aController;
+	WotNowApplication aController;
 
 	// Asyntask
 	AsyncTask<Void, Void, Void> mRegisterTask;
@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
 //        setContentView(R.layout.gcmmain);
          
         //Get Global Controller Class object (see application tag in AndroidManifest.xml)
-        aController = (HMSHostApplication) getApplicationContext();
+        aController = (WotNowApplication) getApplicationContext();
          
          
         // Check if Internet present

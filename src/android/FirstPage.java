@@ -1,4 +1,4 @@
-package com.google.profile;
+package com.alltivity.wotnow;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -58,7 +58,7 @@ public class FirstPage extends DroidGap {
 	private int month;
 	private int day;
 
-	HMSHostApplication aController;
+	WotNowApplication aController;
 
 	// Asyntask
 	AsyncTask<Void, Void, Void> mRegisterTask;
@@ -74,8 +74,9 @@ public class FirstPage extends DroidGap {
 		objCCl.getLocation2();
 		Latitude = String.valueOf(objCCl.latitude);
 		Longtitude = String.valueOf(objCCl.longitude);
+
 		syncGoogleAccount();
-		//doGCMController();
+
 		try {
 			getAddress(FirstPage.this, Latitude, Longtitude);
 		} catch (JSONException e) {
@@ -87,20 +88,30 @@ public class FirstPage extends DroidGap {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if (getIntent().getExtras().containsKey("KEY")) {
-			Log.v("Key>>>>>>>", "KEY");
-			//String url = GCMIntentService.Url;
-			String url = getIntent().getExtras().getString("URL");
-			Log.v("URL", url);
-			super.loadUrl("javascript:pushnotification('" + url.trim() + "')");
-		}
+		doGCMController();
+		try{
+			Log.d("GCMIntentService.Url", GCMIntentService.Url)	;
+			super.loadUrl("javascript:pushnotification('" + GCMIntentService.Url.trim() + "')");
+		}catch(Exception ex)
+		{}
+
+		/*	if (getIntent().getExtras().containsKey("KEY")) {
+			try{
+				Log.v("Key>>>>>>>", "KEY");
+				//String url = GCMIntentService.Url;
+				String url = getIntent().getExtras().getString("URL");
+				Log.v("URL", url);
+				super.loadUrl("javascript:pushnotification('" + url.trim() + "')");
+			}catch(Exception ex)
+			{}
+		}*/
 	}
 
 	private void doGCMController() {
 
 		// Get Global Controller Class object (see application tag in
 		// AndroidManifest.xml)
-		aController = (HMSHostApplication) getApplicationContext();
+		aController = (WotNowApplication) getApplicationContext();
 
 		// Check if Internet present
 		if (!aController.isConnectingToInternet()) {
@@ -154,7 +165,7 @@ public class FirstPage extends DroidGap {
 			 */
 			Log.v("gcm reg id", regId);
 			registrationId = regId;
-			
+
 		}
 
 	}
@@ -190,7 +201,7 @@ public class FirstPage extends DroidGap {
 			object.put("State", state);
 			object.put("Country", country);
 			Log.v("getLocation :", object.toString());
-            
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -278,38 +289,38 @@ public class FirstPage extends DroidGap {
 		}
 		super.onDestroy();
 	}
-	
+
 	@Override
 	protected Dialog onCreateDialog(int id, Bundle args) {
 		switch (id) {
 		case DATE_DIALOG_ID:
-		
-		
-		String date = args.getString("Date");
-		Log.v("onCreateDialog+date", date);
 
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
-		String dateInString = date;
-	 
-		
-	 
+
+			String date = args.getString("Date");
+			Log.v("onCreateDialog+date", date);
+
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
+			String dateInString = date;
+
+
+
 			try {
 				Date mdate = formatter.parse(dateInString);
 				year = mdate.getYear();
 				month = mdate.getMonth();
 				day =mdate.getDay();
-				
+
 				Log.v("StrToDate", year + "----" + month + "-----" +day );
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-	 
-		
-		
-		
-			
+
+
+
+
+
+
 
 			return new DatePickerDialog(FirstPage.this, datePickerListener, year, month,
 					day);

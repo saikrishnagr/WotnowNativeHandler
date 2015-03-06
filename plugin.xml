@@ -16,6 +16,7 @@
 				<param name="android-package" value="com.alltivity.wotnow.NativeHandler"/>
 			</feature>
 		</config-file>
+		<!--Sample Comment-->
 		<!--<source-file src="src/android/lib/android-support-v13.jar" target-dir="libs" framework="true" />  -->
 		<!--<source-file src="src/android/lib/cordova.jar" target-dir="libs" framework="true" />  -->
 		<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />  

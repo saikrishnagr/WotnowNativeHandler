@@ -19,7 +19,7 @@
 		<!--Sample Comment-->
 		<!--<source-file src="src/android/lib/android-support-v13.jar" target-dir="libs" framework="true" />  -->
 		<source-file src="src/android/lib/cordova.jar" target-dir="libs" framework="true" />
-		<!--<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />  -->
+		<source-file src="src/android/lib/gcm.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/lib/google-api-client-1.19.1.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/google-api-client-android-1.19.1.jar" target-dir="libs" framework="true" />  
 		<source-file src="src/android/lib/google-api-services-calendar-v3-rev117-1.19.1.jar" target-dir="libs" framework="true" />  

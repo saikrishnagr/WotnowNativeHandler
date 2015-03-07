@@ -72,8 +72,14 @@ import com.facebook.Session;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.FacebookDialog;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.PlusShare;
+import com.google.android.gms.plus.model.people.Person;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
@@ -89,7 +95,16 @@ import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
 
-public class NativeHandler extends CordovaPlugin {
+import android.app.PendingIntent;
+import android.content.IntentSender;
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.common.Scopes;
+import org.apache.cordova.*;
+
+public class NativeHandler extends CordovaPlugin implements
+		ConnectionCallbacks, OnConnectionFailedListener {
 	public static final String Google_Sign_In = "googlePlusSignInAction";
 	public static final String Facebook = "facebookSignInAction";
 	public static final String Yahoo_Sign_In_Button_Click = "yahooSignInAction";
@@ -115,18 +130,21 @@ public class NativeHandler extends CordovaPlugin {
 	private UiLifecycleHelper uiHelper;
 	private String RegId =  FirstPage.registrationId;
 	
+
+	private final String TAG = "NativeHandler";
+
 	@Override
 	public boolean execute(String action, JSONArray args,
 			final CallbackContext callbackContext) throws JSONException {
 		mContext = this.cordova.getActivity().getApplicationContext();
 		mCordovaActivity = this.cordova.getActivity();
-		//		JSONObject ContactsArray = new JSONObject();
+		savedCallbackContext = callbackContext;
 		String ContactsJson;
 
 		//		PluginResult result = null;
 		JSONObject profileData = null;
 		String eventsJson;
-		Log.d("----------Action called is ---------- ", action);
+		Log.d(TAG, "Action Called : " + action);
 		if (Google_Sign_In.equals(action)) {
 
 			if (args.getInt(0) == 1) {
@@ -136,29 +154,13 @@ public class NativeHandler extends CordovaPlugin {
 						.setContentUrl(Uri.parse("https://wotnow.me/"))
 						.getIntent();
 
-				mCordovaActivity.startActivityForResult(shareIntent,
-						0);
+				mCordovaActivity.startActivityForResult(shareIntent, 0);
+			} else if (args.get(0).equals("2")) {
+				accessGoogleCalendar();
+				syncGoogleCalendar(callbackContext);
 			} else {
-				try {
-					Log.d("-------------Google Sign in called ------------ ",
-							action);
-					String email = AbstractGetNameTask.emailId;
-					profileData = new JSONObject(
-							AbstractGetNameTask.GOOGLE_USER_DATA);
-					Log.v("GoogleResponse", profileData + "");
-					profileData.put("Email", email);
-					String isFBLogin = "YES";
-					profileData.put("isFirstTime", isFBLogin);
-					// Log.v("GoogleResponse+Email", profileData + "");
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				if (args.get(0).equals("2")) {
-					accessGoogleCalendar();
-					syncGoogleCalendar(callbackContext);
-				} else
-					callbackContext.success(profileData);
+				GOOGLE_LOGIN = true;
+				mGoogleApiClient.connect();
 			}
 		} else if (Facebook.equals(action)) {
 			Log.d(Facebook, "Facebook Sign In Button Clicked: " + action);
@@ -234,13 +236,12 @@ public class NativeHandler extends CordovaPlugin {
 			//			ContactsJson = getContactDetails();
 			//			callbackContext.success(ContactsJson);
 		} else if (GetLocalContacts.equals(action)) {
-			Log.d(GetLocalContacts, "Contacts: " + action);
-			ContactsJson = getContactDetailsByName(args.get(0).toString());
+			ContactsJson = getContactDetails();
 			callbackContext.success(ContactsJson);
 		} else if (GetPhoneEvents.equals(action)) {
 			Log.d(GetPhoneEvents, "Phone Events: " + action);
 			eventsJson = getPhoneEvents();
-			Log.d("WotNowApp", eventsJson);
+			Log.d("Local Events", eventsJson);
 			callbackContext.success(eventsJson);
 		} else if (DeviceId.equals(action)) {
 			Log.d(DeviceId, "Phone Events: " + action);
@@ -315,103 +316,6 @@ public class NativeHandler extends CordovaPlugin {
 	}
 
 	private String getContactDetails() {
-
-		ArrayList<Contacts> contactsObj;
-		JSONObject contactObj;
-		Contacts contacts;
-
-		ContentResolver cr = cordova.getActivity().getContentResolver();
-		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
-				null, null, null);
-
-		contactsObj = new ArrayList<Contacts>();
-
-		if (cur.getCount() > 0) {
-			while (cur.moveToNext()) {
-				HashMap<String, Contacts> map = new HashMap<String, Contacts>();
-				contacts = new Contacts();
-				String id = cur.getString(cur
-						.getColumnIndex(ContactsContract.Contacts._ID));
-				String Names = "";
-
-				String Number = "", Email = "";
-
-				if (Integer
-						.parseInt(cur.getString(cur
-								.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-					Cursor pCur = cordova
-							.getActivity()
-							.getContentResolver()
-							.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-									null,
-									ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-									+ " = "
-									+ cur.getString(cur
-											.getColumnIndex(ContactsContract.Contacts._ID)),
-											null, null);
-
-					while (pCur.moveToNext()) {
-						int phoneType = Integer
-								.parseInt(pCur.getString(pCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)));
-						if (phoneType == 2) {
-							Number = pCur.getString(pCur
-									.getColumnIndex("DATA1"));
-							contacts.setNumber(Number);
-							Names = cur
-									.getString(cur
-											.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-							contacts.setNames(Names);
-
-							String[] NameArray = Names.split(" ");
-							String FirstName = NameArray[0];
-							contacts.setFirstName(FirstName);
-							String LastName = NameArray[NameArray.length - 1];
-							contacts.setLastName(LastName);
-
-							Cursor emailCur = cordova
-									.getActivity()
-									.getContentResolver()
-									.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-											null,
-											ContactsContract.CommonDataKinds.Email.CONTACT_ID
-											+ " = ?",
-											new String[] { id }, null);
-							Log.d("Email id", emailCur.getCount() + "");
-							emailCur.moveToFirst();
-							if (emailCur.getCount() > 0) {
-								Email = emailCur
-										.getString(emailCur
-												.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-								contacts.setEmail(Email);
-								Log.d("Email id", Email);
-							} else {
-								Email = "$ Email";
-							}
-							emailCur.close();
-
-							// map.put("Contacts", contacts);
-
-							contactsObj.add(contacts);
-
-						}
-					}
-					pCur.close();
-				}
-
-			}
-		}
-		Gson gson = new Gson();
-		return gson.toJson(contactsObj);
-	}
-
-	/**
-	 * 
-	 * @param searchText
-	 * @return
-	 */
-	private String getContactDetailsByName(String searchText) {
-
 		ArrayList<String> emlRecs = new ArrayList<String>();
 		HashSet<String> emlRecsHS = new HashSet<String>();
 		ArrayList<Contacts> contactsObj = new ArrayList<Contacts>();
@@ -435,19 +339,19 @@ public class NativeHandler extends CordovaPlugin {
 				String name = cur.getString(1);
 				String emlAddr = cur.getString(3);
 
-				if (emlRecsHS.add(emlAddr.toLowerCase())) {
-					Contacts contact = new Contacts();
-					contact.setNames(name);
-					contact.setEmail(emlAddr);
-					contactsObj.add(contact);
-					emlRecs.add(emlAddr);
-				}
-			} while (cur.moveToNext());
-		}
+	            if (emlRecsHS.add(emlAddr.toLowerCase())) {
+	            	Contacts contact = new Contacts();
+	            	contact.setNames(name);
+	            	contact.setEmail(emlAddr);
+	            	contactsObj.add(contact);
+	                emlRecs.add(emlAddr);
+	            }
+	        } while (cur.moveToNext());
+	    }
 
-		cur.close();
-		Gson gson = new Gson();
-		Log.d("TEST", gson.toJson(contactsObj));
+	    cur.close();
+	    Gson gson = new Gson();
+	    Log.d("TEST", gson.toJson(contactsObj));
 		return gson.toJson(contactsObj);
 	}
 
@@ -696,28 +600,28 @@ public class NativeHandler extends CordovaPlugin {
 						.getColumnIndex("dtstart"));
 
 				long number = Long.valueOf(startDate);
-				Log.d("WotNowApp", "Long value : " + number);
+//				Log.d("WotNowApp", "Long value : " + number);
 				Timestamp stamp = new Timestamp(number);
 				Date date = new Date(stamp.getTime());
-				Log.d("WotNowApp", "Date value : " + date.toString());
+//				Log.d("WotNowApp", "Date value : " + date.toString());
 				// //Log.v("StartDate", date.toString() + "");
 
 				SimpleDateFormat format = new SimpleDateFormat(
 						"yyyy-MM-dd'T'HH:mm:ss");
 
 				String DateToStr = format.format(date);
-				Log.d("WotNowApp", "DateToStr value : " + DateToStr);
+				// Log.d("WotNowApp", "DateToStr value : " + DateToStr);
 
 				SimpleDateFormat format1 = new SimpleDateFormat("z");
 
 				String DateToStr1 = format1.format(date);
-				Log.d("WotNowApp", "DateToStr1 value : " + DateToStr1);
+				// Log.d("WotNowApp", "DateToStr1 value : " + DateToStr1);
 
 				String removeGmt = DateToStr1.replace("GMT", "");
-				Log.d("WotNowApp", "removeGmt value : " + removeGmt);
+				// Log.d("WotNowApp", "removeGmt value : " + removeGmt);
 
 				String strStartDate = DateToStr;// + removeCharAt(removeGmt, 3);
-				Log.d("WotNowApp", "strStartDate value : " + strStartDate);
+				// Log.d("WotNowApp", "strStartDate value : " + strStartDate);
 
 				events.setStartDate(strStartDate);
 				String endDate = cursors.getString(cursors
@@ -974,8 +878,6 @@ public class NativeHandler extends CordovaPlugin {
 
 	// Yahoo Integration
 
-	private final String TAG = "yahoo_auth";
-
 	private static final String CONSUMER_KEY = "dj0yJmk9Znk4ZlNQclR1c015JmQ9WVdrOU5HZzFRMVZxTnpJbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02ZA--";
 	private static final String CONSUMER_SECRET = "fd8b56bd777f293e01b2b54d3ab28f62cb7834ed";
 
@@ -1225,7 +1127,6 @@ public class NativeHandler extends CordovaPlugin {
 			e.printStackTrace();
 		}
 		return null;
-
 	}
 
 	public String encodeURIComponent(final String value) {
@@ -1267,6 +1168,131 @@ public class NativeHandler extends CordovaPlugin {
 		if (ch > 128 || ch < 0)
 			return true;
 		return " %$&+,/:;=?@<>#%".indexOf(ch) >= 0;
+	}
+
+	// Google Sign-in
+
+	private GoogleApiClient mGoogleApiClient;
+	private CallbackContext savedCallbackContext;
+	private boolean loggingOut;
+	private boolean GOOGLE_LOGIN = false;
+
+	@Override
+	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+		super.initialize(cordova, webView);
+		mGoogleApiClient = buildGoogleApiClient();
+	}
+
+	private GoogleApiClient buildGoogleApiClient() {
+		return new GoogleApiClient.Builder(webView.getContext())
+				.addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this)
+				.addApi(Plus.API, Plus.PlusOptions.builder().build())
+				.addScope(Plus.SCOPE_PLUS_LOGIN)
+				.addScope(Plus.SCOPE_PLUS_PROFILE).build();
+	}
+
+	private void resolveToken(final String email, final JSONObject result) {
+		final Context context = this.cordova.getActivity()
+				.getApplicationContext();
+
+		cordova.getThreadPool().execute(new Runnable() {
+			public void run() {
+				String scope = null;
+				String token = null;
+				try {
+					scope = "oauth2:" + Scopes.PLUS_LOGIN;
+					token = GoogleAuthUtil.getToken(context, email, scope);
+					result.put("oauthToken", token);
+				} catch (UserRecoverableAuthException userAuthEx) {
+					cordova.getActivity().startActivityForResult(
+							userAuthEx.getIntent(), Activity.RESULT_OK);
+					return;
+				} catch (IOException e) {
+					savedCallbackContext.error("Failed to retrieve token: "
+							+ e.getMessage());
+					return;
+				} catch (GoogleAuthException e) {
+					savedCallbackContext.error("Failed to retrieve token: "
+							+ e.getMessage());
+					return;
+				} catch (JSONException e) {
+					savedCallbackContext.error("Failed to retrieve token: "
+							+ e.getMessage());
+					return;
+				}
+				GOOGLE_LOGIN = false;
+				Log.d(TAG, result.toString());
+				savedCallbackContext.success(result);
+			}
+		});
+	}
+
+	@Override
+	public void onConnected(Bundle connectionHint) {
+		final String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+		final Person user = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+
+		final JSONObject result = new JSONObject();
+		try {
+			result.put("Email", email);
+			if (user != null) {
+				result.put("id", user.getId());
+				result.put("name", user.getDisplayName());
+				result.put("gender", getGender(user.getGender()));
+				result.put("isFirstTime", "YES");
+				if (user.getImage() != null) {
+					result.put("picture", user.getImage().getUrl());
+				}
+				if (user.getName() != null) {
+					result.put("given_name", user.getName().getGivenName());
+					result.put("family_name", user.getName().getFamilyName());
+				}
+			}
+			resolveToken(email, result);
+		} catch (JSONException e) {
+			savedCallbackContext.error("result parsing trouble, error: "
+					+ e.getMessage());
+		}
+	}
+
+	private static String getGender(int gender) {
+		switch (gender) {
+		case 0:
+			return "male";
+		case 1:
+			return "female";
+		default:
+			return "other";
+		}
+	}
+
+	@Override
+	public void onConnectionSuspended(int constantInClass_ConnectionCallbacks) {
+		this.savedCallbackContext.error("connection trouble, code: "
+				+ constantInClass_ConnectionCallbacks);
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult result) {
+		if (result.getErrorCode() == ConnectionResult.SERVICE_MISSING) {
+			this.savedCallbackContext.error("service not available");
+		} else if (loggingOut) {
+			loggingOut = false;
+			this.savedCallbackContext.success("logged out");
+		} else if (result.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED) {
+			final PendingIntent mSignInIntent = result.getResolution();
+			try {
+				((CordovaActivity) this.cordova.getActivity())
+						.setActivityResultCallback(this);
+				this.cordova.getActivity().startIntentSenderForResult(
+						mSignInIntent.getIntentSender(), 0, null, 0, 0, 0);
+			} catch (IntentSender.SendIntentException ignore) {
+				mGoogleApiClient.connect();
+			}
+		} else {
+			this.savedCallbackContext.error("no valid token");
+		}
 	}
 
 	// Google Calendar
@@ -1374,36 +1400,44 @@ public class NativeHandler extends CordovaPlugin {
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		switch (requestCode) {
-		case REQUEST_GOOGLE_PLAY_SERVICES:
+		if (GOOGLE_LOGIN) {
 			if (resultCode == Activity.RESULT_OK) {
-				haveGooglePlayServices();
+				mGoogleApiClient.connect();
 			} else {
-				checkGooglePlayServicesAvailable();
+				this.savedCallbackContext.error("user cancelled");
 			}
-			break;
-		case REQUEST_AUTHORIZATION:
-			if (resultCode != Activity.RESULT_OK) {
-				chooseAccount();
-			}
-			break;
-		case REQUEST_ACCOUNT_PICKER:
-			if (resultCode == Activity.RESULT_OK && data != null
-			&& data.getExtras() != null) {
-
-				String accountName = data.getExtras().getString(
-						AccountManager.KEY_ACCOUNT_NAME);
-				if (accountName != null) {
-
-					credential.setSelectedAccountName(accountName);
-					SharedPreferences settings = mCordovaActivity
-							.getPreferences(Context.MODE_PRIVATE);
-					SharedPreferences.Editor editor = settings.edit();
-					editor.putString(PREF_ACCOUNT_NAME, accountName);
-					editor.commit();
+		} else {
+			switch (requestCode) {
+			case REQUEST_GOOGLE_PLAY_SERVICES:
+				if (resultCode == Activity.RESULT_OK) {
+					haveGooglePlayServices();
+				} else {
+					checkGooglePlayServicesAvailable();
 				}
+				break;
+			case REQUEST_AUTHORIZATION:
+				if (resultCode != Activity.RESULT_OK) {
+					chooseAccount();
+				}
+				break;
+			case REQUEST_ACCOUNT_PICKER:
+				if (resultCode == Activity.RESULT_OK && data != null
+						&& data.getExtras() != null) {
+
+					String accountName = data.getExtras().getString(
+							AccountManager.KEY_ACCOUNT_NAME);
+					if (accountName != null) {
+
+						credential.setSelectedAccountName(accountName);
+						SharedPreferences settings = mCordovaActivity
+								.getPreferences(Context.MODE_PRIVATE);
+						SharedPreferences.Editor editor = settings.edit();
+						editor.putString(PREF_ACCOUNT_NAME, accountName);
+						editor.commit();
+					}
+				}
+				break;
 			}
-			break;
 		}
 	}
 }

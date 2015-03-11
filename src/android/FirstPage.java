@@ -28,7 +28,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.DatePicker;
 import android.widget.TextView;
-import android.widget.Toast;
+//import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -75,7 +75,7 @@ public class FirstPage extends DroidGap {
 		Latitude = String.valueOf(objCCl.latitude);
 		Longtitude = String.valueOf(objCCl.longitude);
 
-		syncGoogleAccount();
+//		syncGoogleAccount();
 
 		try {
 			getAddress(FirstPage.this, Latitude, Longtitude);
@@ -97,10 +97,10 @@ public class FirstPage extends DroidGap {
 
 		/*	if (getIntent().getExtras().containsKey("KEY")) {
 			try{
-				Log.v("Key>>>>>>>", "KEY");
+				//Log.v("Key>>>>>>>", "KEY");
 				//String url = GCMIntentService.Url;
 				String url = getIntent().getExtras().getString("URL");
-				Log.v("URL", url);
+				//Log.v("URL", url);
 				super.loadUrl("javascript:pushnotification('" + url.trim() + "')");
 			}catch(Exception ex)
 			{}
@@ -163,7 +163,7 @@ public class FirstPage extends DroidGap {
 			 * Toast.makeText(getApplicationContext(), regId,
 			 * Toast.LENGTH_LONG). show();
 			 */
-			Log.v("gcm reg id", regId);
+			//Log.v("gcm reg id", regId);
 			registrationId = regId;
 
 		}
@@ -181,11 +181,6 @@ public class FirstPage extends DroidGap {
 			// Waking up mobile if it is sleeping
 			aController.acquireWakeLock(getApplicationContext());
 
-			// Display message on the screen
-
-			Toast.makeText(getApplicationContext(),
-					"Got Message: " + newMessage, Toast.LENGTH_LONG).show();
-
 			// Releasing wake lock
 			aController.releaseWakeLock();
 		}
@@ -200,7 +195,7 @@ public class FirstPage extends DroidGap {
 			object.put("City", city);
 			object.put("State", state);
 			object.put("Country", country);
-			Log.v("getLocation :", object.toString());
+			//Log.v("getLocation :", object.toString());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -226,7 +221,7 @@ public class FirstPage extends DroidGap {
 
 	}
 
-	public void syncGoogleAccount() {
+	public void syncGoogleAccounta() {
 		String[] accountarrs = getAccountNames();
 		if (accountarrs.length > 0) {
 			// you can set here account for login
@@ -261,7 +256,7 @@ public class FirstPage extends DroidGap {
 				dlon = address.getLongitude();
 				state = address.getAdminArea();
 				convertToJson();
-				syncGoogleAccount();
+//				syncGoogleAccount();
 
 			}
 		} catch (IOException e) {
@@ -285,7 +280,7 @@ public class FirstPage extends DroidGap {
 			GCMRegistrar.onDestroy(this);
 
 		} catch (Exception e) {
-			Log.v("UnRegister Receiver Error", "> " + e.getMessage());
+			//Log.v("UnRegister Receiver Error", "> " + e.getMessage());
 		}
 		super.onDestroy();
 	}
@@ -297,7 +292,7 @@ public class FirstPage extends DroidGap {
 
 
 			String date = args.getString("Date");
-			Log.v("onCreateDialog+date", date);
+			//Log.v("onCreateDialog+date", date);
 
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
 			String dateInString = date;
@@ -310,7 +305,7 @@ public class FirstPage extends DroidGap {
 				month = mdate.getMonth();
 				day =mdate.getDay();
 
-				Log.v("StrToDate", year + "----" + month + "-----" +day );
+				//Log.v("StrToDate", year + "----" + month + "-----" +day );
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

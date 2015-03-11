@@ -2,7 +2,6 @@ package com.alltivity.wotnow;
 
 import android.app.Application;
 
-import com.alltivity.wotnow.R;
 import com.parse.Parse;
 import com.parse.ParseFacebookUtils;
 
@@ -10,7 +9,7 @@ import com.parse.ParseFacebookUtils;
 
 public class IntegratingFacebookApplication extends Application {
 
-	static final String TAG = "MyApp";
+	public static final String TAG = "MyApp";
 
 	@Override
 	public void onCreate() {

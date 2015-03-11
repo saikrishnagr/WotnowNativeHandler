@@ -70,7 +70,7 @@ public class HomeActivity extends Activity {
 				textViewBirthday.setText(textBirthday);
 			}*/
 			
-			Log.v("GoogleProfile", profileData + "");
+			//Log.v("GoogleProfile", profileData + "");
 
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block

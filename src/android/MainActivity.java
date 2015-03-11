@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
                           regId, 
                           Toast.LENGTH_LONG).
                           show();
-            Log.v("gcm reg id", regId);
+            //Log.v("gcm reg id", regId);
             registrationId = regId;
             lblMessage.setText("GCM reg id of device - " + regId);
             
@@ -174,7 +174,7 @@ public class MainActivity extends Activity {
 			GCMRegistrar.onDestroy(this);
 
 		} catch (Exception e) {
-			Log.v("UnRegister Receiver Error", "> " + e.getMessage());
+			//Log.v("UnRegister Receiver Error", "> " + e.getMessage());
 		}
 		super.onDestroy();
 	}

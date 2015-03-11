@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -20,7 +19,10 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaActivity;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
@@ -35,7 +37,6 @@ import org.json.XML;
 
 import android.accounts.AccountManager;
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
@@ -43,6 +44,7 @@ import android.app.TimePickerDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
@@ -50,6 +52,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -69,11 +73,13 @@ import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
-import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
-import com.facebook.widget.FacebookDialog;
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
@@ -87,7 +93,6 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.Event;
 import com.google.gson.Gson;
 import com.parse.LogInCallback;
 import com.parse.Parse;
@@ -95,42 +100,38 @@ import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
 
-import android.app.PendingIntent;
-import android.content.IntentSender;
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
-import com.google.android.gms.common.Scopes;
-import org.apache.cordova.*;
-
 public class NativeHandler extends CordovaPlugin implements
 		ConnectionCallbacks, OnConnectionFailedListener {
-	public static final String Google_Sign_In = "googlePlusSignInAction";
-	public static final String Facebook = "facebookSignInAction";
-	public static final String Yahoo_Sign_In_Button_Click = "yahooSignInAction";
-	public static final String GetLocalContacts = "fetchTheDeviceContacts";
-	public static final String GetPhoneEvents = "AndroidEventSync";
-	public static final String DeviceId = "addApnsdevice";
-	public static final String sharemail = "shareemail";
-	public static final String sendSMS = "smsPostAction";
-	public static final String androiddatepicker = "androidDatePicker";
-	public static final String androidtimepicker = "androidTimePicker";
-	public static final String androidAddReminder = "androidAddReminder";
-	public static final String twitterShare = "twitterPostAction";
-	public static final String openBrowser = "openTheLinkInSafari";
-	public static final String openGoogleMaps = "accessTheMap";
-	public String date;
+	private static final String Google_Sign_In = "googlePlusSignInAction";
+	private static final String Facebook = "facebookSignInAction";
+	private static final String Yahoo_Sign_In_Button_Click = "yahooSignInAction";
+	private static final String GetLocalContacts = "fetchTheDeviceContacts";
+	private static final String GetPhoneEvents = "AndroidEventSync";
+	private static final String DeviceId = "addApnsdevice";
+	private static final String sharemail = "shareemail";
+	private static final String sendSMS = "smsPostAction";
+	private static final String androiddatepicker = "androidDatePicker";
+	private static final String androidtimepicker = "androidTimePicker";
+	private static final String androidAddReminder = "androidAddReminder";
+	private static final String twitterShare = "twitterPostAction";
+	private static final String openBrowser = "openTheLinkInSafari";
+	private static final String openGoogleMaps = "accessTheMap";
+	private static final String fetchDeviceLocation = "fetchTheDeviceLocation";
+	private String date;
 	private JSONObject FBDetails = new JSONObject();
 	private String userId;
 	private String eventid;
 	private ArrayList<FbEvents> eventsObj = null;
 	//	private String fbEvents;
-	static final int DATE_DIALOG_ID = 999;
+//	private static final int DATE_DIALOG_ID = 999;
+	
+	private CClocation objCCl;
+	private static String Latitude;
+	private static String Longtitude;
 
-	private UiLifecycleHelper uiHelper;
+//	private UiLifecycleHelper uiHelper;
 	private String RegId =  FirstPage.registrationId;
 	
-
 	private final String TAG = "NativeHandler";
 
 	@Override
@@ -141,12 +142,11 @@ public class NativeHandler extends CordovaPlugin implements
 		savedCallbackContext = callbackContext;
 		String ContactsJson;
 
-		//		PluginResult result = null;
 		JSONObject profileData = null;
 		String eventsJson;
 		Log.d(TAG, "Action Called : " + action);
 		if (Google_Sign_In.equals(action)) {
-
+			GOOGLE_LOGIN = false;
 			if (args.getInt(0) == 1) {
 				Intent shareIntent = new PlusShare.Builder(
 						mCordovaActivity).setType("text/plain")
@@ -157,7 +157,7 @@ public class NativeHandler extends CordovaPlugin implements
 				mCordovaActivity.startActivityForResult(shareIntent, 0);
 			} else if (args.get(0).equals("2")) {
 				accessGoogleCalendar();
-				syncGoogleCalendar(callbackContext);
+//				syncGoogleCalendar(savedCallbackContext);
 			} else {
 				GOOGLE_LOGIN = true;
 				mGoogleApiClient.connect();
@@ -165,19 +165,20 @@ public class NativeHandler extends CordovaPlugin implements
 		} else if (Facebook.equals(action)) {
 			Log.d(Facebook, "Facebook Sign In Button Clicked: " + action);
 			if (args.getInt(0) == 1) {
-				uiHelper = new UiLifecycleHelper(mCordovaActivity,
-						null);
-				FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(
+//				uiHelper = new UiLifecycleHelper(mCordovaActivity,
+//						null);
+				/*FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(
 						mCordovaActivity)
-				.setLink("https://wotnow.me")
+				.setLink("http://wotnow.me")
 				.setDescription(args.getString(1)).build();
-				uiHelper.trackPendingDialogCall(shareDialog.present());
+				uiHelper.trackPendingDialogCall(shareDialog.present());*/
 
-				String urlToShare = args.getString(1);
+//				String urlToShare = args.getString(1);
+				String urlToShare = "http://wotnow.me";
 				Log.d("TEST", urlToShare);
 				Intent intent = new Intent(Intent.ACTION_SEND);
 				intent.setType("text/plain"); //
-				intent.putExtra(Intent.EXTRA_SUBJECT, "Foo bar"); // NB: has
+//				intent.putExtra(Intent.EXTRA_SUBJECT, ""); // NB: has
 				intent.putExtra(Intent.EXTRA_TEXT, urlToShare);
 
 				// See if official Facebook app is found boolean
@@ -228,13 +229,7 @@ public class NativeHandler extends CordovaPlugin implements
 				mCordovaActivity.startActivity(browserIntent);
 			}	
 		} else if (Yahoo_Sign_In_Button_Click.equals(action)) {
-			// private final Provider[] providers = new Provider[] {
-			// Provider.YAHOO };
-			// adapter.authorize(contet, providers[0]);
-			//		} else if (GetLocalContacts.equals(action)) {
-			//			Log.d(GetLocalContacts, "Contacts: " + action);
-			//			ContactsJson = getContactDetails();
-			//			callbackContext.success(ContactsJson);
+			new getAuthorizationTask().execute();
 		} else if (GetLocalContacts.equals(action)) {
 			ContactsJson = getContactDetails();
 			callbackContext.success(ContactsJson);
@@ -250,8 +245,25 @@ public class NativeHandler extends CordovaPlugin implements
 		} else if (sendSMS.equals(action)) {
 			sendSMS(args.get(0).toString());
 		} else if (sharemail.equals(action)) {
-			Log.v("sendEmail", "sharemail " + action);
 			sendEmail(args.get(0).toString());
+		} else if (fetchDeviceLocation.equals(action)) {
+			objCCl = new CClocation();
+			CClocation.setContext(mContext);
+			objCCl.getLocation2();
+			Latitude = String.valueOf(objCCl.latitude);
+			Longtitude = String.valueOf(objCCl.longitude);
+			JSONObject locationObject = null;
+			try {
+				locationObject = getAddress(mContext, Latitude, Longtitude);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			if(!locationObject.has("City")) {
+				locationObject.put("City", "Chicago");
+				locationObject.put("State", "IL");
+			}
+			Log.d(TAG, locationObject.toString());
+			callbackContext.success(locationObject);
 		} else if (androidAddReminder.equals(action)) {
 //			TODO
 		} else if (androidtimepicker.equals(action)) {
@@ -297,13 +309,12 @@ public class NativeHandler extends CordovaPlugin implements
 		} else {
 			try {
 				profileData = FirstPage.convertToJson();
-				Log.v("Location", profileData + "");
+				//Log.v("Location", profileData + "");
 				// String regId = FirstPage.registrationId;
-				// Log.v("NativeHandler--Device Id" , regId);
+				// //Log.v("NativeHandler--Device Id" , regId);
 				// This will return the device location details in json format.
 				callbackContext.success(profileData);
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -354,6 +365,35 @@ public class NativeHandler extends CordovaPlugin implements
 	    Log.d("TEST", gson.toJson(contactsObj));
 		return gson.toJson(contactsObj);
 	}
+	
+	private JSONObject getAddress(Context ctx, String latitude, String longitude)
+			throws JSONException {
+		JSONObject object = new JSONObject();
+		try {
+			Geocoder geocoder = new Geocoder(ctx, Locale.getDefault());
+
+			Double lat = Double.valueOf(latitude);
+			Double lon = Double.valueOf(longitude);
+
+			List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
+			if (addresses.size() > 0) {
+				Address address = addresses.get(0);
+				try {
+					object.put("Latitude", address.getLatitude());
+					object.put("Longitude", address.getLongitude());
+					object.put("Location", address.getAddressLine(0));
+					object.put("City", address.getLocality());
+					object.put("State", address.getAdminArea());
+					object.put("Country", address.getCountryName());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage());
+		}
+		return object;
+	}
 
 	private void getFbDetails(final CallbackContext callbackContext,
 			final JSONArray args) {
@@ -369,8 +409,8 @@ public class NativeHandler extends CordovaPlugin implements
 				md.update(signature.toByteArray());
 				Log.d(Facebook,
 						Base64.encodeToString(md.digest(), Base64.DEFAULT));
-				Log.v("KeyHash:",
-						Base64.encodeToString(md.digest(), Base64.DEFAULT));
+				//Log.v("KeyHash:",
+//						Base64.encodeToString(md.digest(), Base64.DEFAULT));
 			}
 		} catch (NameNotFoundException e) {
 
@@ -430,7 +470,7 @@ public class NativeHandler extends CordovaPlugin implements
 				if (user != null) {
 					// Create a JSON object to hold the profile info
 
-					Log.v("FBuserProfileresponse", response + "");
+					//Log.v("FBuserProfileresponse", response + "");
 
 					try {
 						// Populate the JSON object
@@ -464,22 +504,22 @@ public class NativeHandler extends CordovaPlugin implements
 						currentUser.put("profile", userProfile);
 						currentUser.saveInBackground();
 
-						Log.v("FBuserProfile", userProfile + "");
-						Log.v(Facebook, "Facebook Data: " + userProfile);
+						//Log.v("FBuserProfile", userProfile + "");
+						//Log.v(Facebook, "Facebook Data: " + userProfile);
 
 						// This will return the FB User details in json
 						// format.
 
 						if (args.get(0).equals("1")) {
-							Log.v("FacebookArgs", args.get(0) + "");
+							//Log.v("FacebookArgs", args.get(0) + "");
 							getFBEvents(callbackContext);
 						} else if (args.get(0).equals("3")) {
-							Log.v("FacebookArgs", args.get(0) + "");
+							//Log.v("FacebookArgs", args.get(0) + "");
 							// String fdf = (String) args.get(1);
 							callFBEvents(args.get(1).toString(),
 									callbackContext);
 						} else {
-							Log.v("FacebookArgs", args.get(0) + "");
+							//Log.v("FacebookArgs", args.get(0) + "");
 							callbackContext.success(userProfile);
 						}
 						// callbackContext.success(userProfile);
@@ -505,66 +545,11 @@ public class NativeHandler extends CordovaPlugin implements
 			}
 		});
 		request.executeAsync();
-
-	}
-
-	private String getPhoneEvents_new() throws JSONException {
-		ArrayList<Events> eventsObj;
-		JSONObject contactObj;
-		Events events;
-
-		Uri CALENDAR_URI = Uri.parse("content://com.android.calendar/events");
-		Cursor cursors = cordova.getActivity().getContentResolver()
-				.query(CALENDAR_URI, null, null, null, null);
-
-		eventsObj = new ArrayList<Events>();
-		// HashMap<String, Events> map = new HashMap<String, Events>();
-		if (cursors.getCount() > 0) {
-			while (cursors.moveToNext()) {
-
-				// map = new HashMap<String, Events>();
-				events = new Events();
-
-				String desc = cursors.getString(cursors
-						.getColumnIndex("description"));
-				events.setDesc(desc);
-				String location = cursors.getString(cursors
-						.getColumnIndex("eventLocation"));
-				events.setLocation(location);
-				String id = cursors.getString(cursors.getColumnIndex("_id"));
-				events.setId(Integer.parseInt(id));
-				String title = cursors.getString(cursors
-						.getColumnIndex("title"));
-				events.setTitle(title);
-
-				long number = cursors
-						.getLong(cursors.getColumnIndex("dtstart"));
-				Calendar cal = Calendar.getInstance();
-				cal.setTimeInMillis(number);
-				SimpleDateFormat format = new SimpleDateFormat(
-						"yyyy-MM-dd HH:mm:ss");
-				String strStartDate = format.format(cal.getTime());
-				events.setStartDate(strStartDate);
-				number = cursors.getLong(cursors.getColumnIndex("dtend"));
-				String endDate = cursors.getString(cursors
-						.getColumnIndex("dtend"));
-
-				if (endDate != null) {
-					number = cursors.getLong(cursors.getColumnIndex("dtend"));
-					cal.setTimeInMillis(number);
-					String strEndDate = format.format(cal.getTime());
-					events.setEndDate(strEndDate);
-				}
-				eventsObj.add(events);
-			}
-		}
-		Gson gson = new Gson();
-		return gson.toJson(eventsObj);
 	}
 
 	private String getPhoneEvents() throws JSONException {
 		ArrayList<Events> eventsObj;
-		JSONObject contactObj;
+//		JSONObject contactObj;
 		Events events;
 
 		Uri CALENDAR_URI = Uri.parse("content://com.android.calendar/events");
@@ -572,7 +557,7 @@ public class NativeHandler extends CordovaPlugin implements
 				.query(CALENDAR_URI, null, null, null, null);
 
 		eventsObj = new ArrayList<Events>();
-		HashMap<String, Events> map = new HashMap<String, Events>();
+//		HashMap<String, Events> map = new HashMap<String, Events>();
 		Boolean hasPosition = false;
 		if (cursors.getCount() > 0) {
 			if (cursors.getPosition() < 0)
@@ -583,7 +568,7 @@ public class NativeHandler extends CordovaPlugin implements
 
 			{
 
-				map = new HashMap<String, Events>();
+//				map = new HashMap<String, Events>();
 				events = new Events();
 				String desc = cursors.getString(cursors
 						.getColumnIndex("description"));
@@ -604,7 +589,7 @@ public class NativeHandler extends CordovaPlugin implements
 				Timestamp stamp = new Timestamp(number);
 				Date date = new Date(stamp.getTime());
 //				Log.d("WotNowApp", "Date value : " + date.toString());
-				// //Log.v("StartDate", date.toString() + "");
+				// ////Log.v("StartDate", date.toString() + "");
 
 				SimpleDateFormat format = new SimpleDateFormat(
 						"yyyy-MM-dd'T'HH:mm:ss");
@@ -612,12 +597,12 @@ public class NativeHandler extends CordovaPlugin implements
 				String DateToStr = format.format(date);
 				// Log.d("WotNowApp", "DateToStr value : " + DateToStr);
 
-				SimpleDateFormat format1 = new SimpleDateFormat("z");
+//				SimpleDateFormat format1 = new SimpleDateFormat("z");
 
-				String DateToStr1 = format1.format(date);
+//				String DateToStr1 = format1.format(date);
 				// Log.d("WotNowApp", "DateToStr1 value : " + DateToStr1);
 
-				String removeGmt = DateToStr1.replace("GMT", "");
+//				String removeGmt = DateToStr1.replace("GMT", "");
 				// Log.d("WotNowApp", "removeGmt value : " + removeGmt);
 
 				String strStartDate = DateToStr;// + removeCharAt(removeGmt, 3);
@@ -632,18 +617,18 @@ public class NativeHandler extends CordovaPlugin implements
 					long datetol = Long.valueOf(endDate);
 					Timestamp tstamp = new Timestamp(datetol);
 					Date date1 = new Date(tstamp.getTime());
-					// //Log.v("EndDate", date1.toString() + "");
+					// ////Log.v("EndDate", date1.toString() + "");
 
 					SimpleDateFormat endformat = new SimpleDateFormat(
 							"yyyy-MM-dd'T'HH:mm:ss");
 
 					String DateToStr3 = endformat.format(date1);
 
-					SimpleDateFormat formatz = new SimpleDateFormat("z");
+//					SimpleDateFormat formatz = new SimpleDateFormat("z");
 
-					String DateToStr4 = formatz.format(date1);
+//					String DateToStr4 = formatz.format(date1);
 
-					String removeGmt1 = DateToStr4.replace("GMT", "");
+//					String removeGmt1 = DateToStr4.replace("GMT", "");
 
 					String strEndDate = DateToStr3;// + removeCharAt(removeGmt1,
 					// 3);
@@ -655,7 +640,7 @@ public class NativeHandler extends CordovaPlugin implements
 			}
 		}
 		Gson gson = new Gson();
-		String jsonContacts = gson.toJson(eventsObj);
+//		String jsonContacts = gson.toJson(eventsObj);
 
 		return gson.toJson(eventsObj);
 	}
@@ -676,14 +661,14 @@ public class NativeHandler extends CordovaPlugin implements
 
 	private void getFBEvents(final CallbackContext callbackContext) {
 		Calendar calendar = Calendar.getInstance();
-		Log.v("CurrentDate", String.valueOf(calendar.getTimeInMillis() / 1000L));
+		//Log.v("CurrentDate", String.valueOf(calendar.getTimeInMillis() / 1000L));
 
 		calendar.add(Calendar.DAY_OF_MONTH, +30);
-		Log.v("FutureDate", String.valueOf(calendar.getTimeInMillis() / 1000L));
+		//Log.v("FutureDate", String.valueOf(calendar.getTimeInMillis() / 1000L));
 		String strFuture = String.valueOf(calendar.getTimeInMillis() / 1000L);
 
 		calendar.add(Calendar.DAY_OF_MONTH, -60);
-		Log.v("PastDate", String.valueOf(calendar.getTimeInMillis() / 1000L));
+		//Log.v("PastDate", String.valueOf(calendar.getTimeInMillis() / 1000L));
 		String strPast = String.valueOf(calendar.getTimeInMillis() / 1000L);
 		String accesstoken = "CAAIxoyLlnhABAHqgBC0ATS528AHuADuTpkYITjhF1SJeZCHZAxp8h6NRthqovBDZAVToX7rf4atDGcTZB3ALS6JIuqz1Dil1ZCQF8H2Ym80dQf3tjDq5CYdFsa3kfrkZBj0hCeN7Re2Eu7HUDSMt062bT0wtr1aHwrRB9puvLS7FWoYIShxWFtvR95zY68QqaEuZBcsGZAxqwZBcFzsHWHAR0";
 		String token = "access_token=" + accesstoken + "";
@@ -701,9 +686,9 @@ public class NativeHandler extends CordovaPlugin implements
 		new Request(ParseFacebookUtils.getSession(), "/" + userId + "/events",
 				params, HttpMethod.GET, new Request.Callback() {
 			public void onCompleted(Response response) {
-				Log.v("Params", params + "");
-				Log.v("userId", userId);
-				Log.v("Response", response.getRawResponse() + "");
+				//Log.v("Params", params + "");
+				//Log.v("userId", userId);
+				//Log.v("Response", response.getRawResponse() + "");
 				String json = response.getRawResponse();
 				JSONObject jsonObj;
 				try {
@@ -711,9 +696,8 @@ public class NativeHandler extends CordovaPlugin implements
 					JSONArray jarry = jsonObj.getJSONArray("data");
 					callbackContext.success(jarry);
 					arrylength = jarry.length();
-					Log.v("arrylength", arrylength + "");
+					//Log.v("arrylength", arrylength + "");
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -732,8 +716,8 @@ public class NativeHandler extends CordovaPlugin implements
 				null, HttpMethod.GET, new Request.Callback() {
 
 			public void onCompleted(Response response) {
-				Log.v("EventId", streventId);
-				Log.v("Response", response.getRawResponse() + "");
+				//Log.v("EventId", streventId);
+				//Log.v("Response", response.getRawResponse() + "");
 
 				callbackContext.success(response.getRawResponse());
 				/*
@@ -757,13 +741,13 @@ public class NativeHandler extends CordovaPlugin implements
 				 * fbeventsobj.setPrivacy(privacy);
 				 * fbeventsobj.setStartTime(startTime);
 				 * 
-				 * } catch (JSONException e) { // TODO Auto-generated
+				 * } catch (JSONException e) { 
 				 * catch block e.printStackTrace(); }
 				 * 
-				 * eventsObj.add(fbeventsobj); Log.v("EventsObj",
+				 * eventsObj.add(fbeventsobj); //Log.v("EventsObj",
 				 * eventsObj.size() + ""); Gson gson = new Gson();
 				 * fbEvents = gson.toJson(eventsObj);
-				 * Log.v("FBEvents-------->", gson.toJson(eventsObj));
+				 * //Log.v("FBEvents-------->", gson.toJson(eventsObj));
 				 * callbackContext.success(gson.toJson(eventsObj));
 				 * 
 				 * }
@@ -795,11 +779,10 @@ public class NativeHandler extends CordovaPlugin implements
 						new Request.Callback() {
 
 					public void onCompleted(Response response) {
-						Log.v("EventId", eventid);
-						Log.v("Response", response.getRawResponse()
-								+ "");
+						//Log.v("EventId", eventid);
+						//Log.v("Response", response.getRawResponse()+ "");
 						arrylength--;
-						Log.v("arrylength", arrylength + "");
+						//Log.v("arrylength", arrylength + "");
 						FbEvents fbeventsobj = new FbEvents();
 						String json = response.getRawResponse();
 						String id;
@@ -829,31 +812,28 @@ public class NativeHandler extends CordovaPlugin implements
 							fbeventsobj.setStartTime(startTime);
 
 						} catch (JSONException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 
 						eventsObj.add(fbeventsobj);
-						Log.v("EventsObj", eventsObj.size() + "");
+						//Log.v("EventsObj", eventsObj.size() + "");
 						Gson gson = new Gson();
 						//								fbEvents = gson.toJson(eventsObj);
 						if (arrylength == 0) {
 							callbackContext.success(gson
 									.toJson(eventsObj));
-							Log.v("fbEvents", gson.toJson(eventsObj)
-									+ "");
+							//Log.v("fbEvents", gson.toJson(eventsObj)+ "");
 						}
 					}
 
 				}).executeAsync();
 
-				Log.v("Events ", eventid + "");
+				//Log.v("Events ", eventid + "");
 			}
 
-			Log.v("jarry", jarry + "");
+			//Log.v("jarry", jarry + "");
 
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -919,9 +899,9 @@ public class NativeHandler extends CordovaPlugin implements
 		@Override
 		protected void onPostExecute(Void result) {
 
-			mDialog = new Dialog(mContext);
-			// mDialog.setContentView(R.layout.dialog_yahoo_login);
-			// mWebview = (WebView) mDialog.findViewById(R.id.webview);
+			mDialog = new Dialog(mCordovaActivity);
+			 mDialog.setContentView(R.layout.dialog_yahoo_login);
+			 mWebview = (WebView) mDialog.findViewById(R.id.webview);
 
 			mWebview.getSettings().setJavaScriptEnabled(true);
 			mWebview.setWebViewClient(lWebviewClient);
@@ -981,9 +961,6 @@ public class NativeHandler extends CordovaPlugin implements
 				System.out.println("SYS url called " + url);
 				int lastIndex = url.lastIndexOf("=") + 1;
 				USER_TOKEN = url.substring(lastIndex, url.length());
-				Editor editor = sp.edit();
-				editor.putString("USER_TOKEN", USER_TOKEN);
-				editor.commit();
 				mWebview.setVisibility(View.GONE);
 
 				new getAccessTokenTask().execute();
@@ -1040,12 +1017,6 @@ public class NativeHandler extends CordovaPlugin implements
 			ACCESS_TOKEN = data[0].replace("oauth_token=", "");
 			ACCESS_TOKEN_SECRET = data[1].replace("oauth_token_secret=", "");
 			mUSER_GUID = data[5].replace("xoauth_yahoo_guid=", "");
-			Editor editor = sp.edit();
-			editor.putString("ACCESS_TOKEN", ACCESS_TOKEN);
-			editor.putString("ACCESS_TOKEN_SECRET", ACCESS_TOKEN_SECRET);
-			editor.putString("mUSER_GUID", mUSER_GUID);
-			editor.commit();
-			// getAllContacts();
 		} catch (HttpResponseException e) {
 			getAccessToken();
 			e.printStackTrace();
@@ -1098,8 +1069,8 @@ public class NativeHandler extends CordovaPlugin implements
 					e.printStackTrace();
 				}
 
-				Log.d("XML", responseBody);
-				Log.d("JSON STRING", jsonObj.toString());
+				Log.d(TAG, jsonObj.toString());
+				savedCallbackContext.success(jsonObj);
 
 			} catch (HttpResponseException e) {
 				e.printStackTrace();
@@ -1249,6 +1220,11 @@ public class NativeHandler extends CordovaPlugin implements
 					result.put("family_name", user.getName().getFamilyName());
 				}
 			}
+			SharedPreferences settings = mCordovaActivity
+					.getPreferences(Context.MODE_PRIVATE);
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putString(PREF_ACCOUNT_NAME, email);
+			editor.commit();
 			resolveToken(email, result);
 		} catch (JSONException e) {
 			savedCallbackContext.error("result parsing trouble, error: "
@@ -1326,6 +1302,7 @@ public class NativeHandler extends CordovaPlugin implements
 		if (checkGooglePlayServicesAvailable()) {
 			haveGooglePlayServices();
 		}
+		syncGoogleCalendar(savedCallbackContext);
 	}
 
 	// /** Check that Google Play services APK is installed and up to date.
@@ -1341,7 +1318,7 @@ public class NativeHandler extends CordovaPlugin implements
 
 	private void haveGooglePlayServices() {
 		if (credential.getSelectedAccountName() == null) {
-			chooseAccount();
+//			chooseAccount();
 		}
 	}
 
@@ -1363,12 +1340,6 @@ public class NativeHandler extends CordovaPlugin implements
 	}
 
 	private void syncGoogleCalendar(final CallbackContext callbackContext) {
-		credential.setSelectedAccountName(AbstractGetNameTask.emailId);
-		SharedPreferences settings = mCordovaActivity
-				.getPreferences(Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString(PREF_ACCOUNT_NAME, AbstractGetNameTask.emailId);
-		editor.commit();
 		JSONObject allData = null;
 		JSONArray googleEvents = null;
 		com.google.api.services.calendar.model.Events events;
@@ -1396,7 +1367,7 @@ public class NativeHandler extends CordovaPlugin implements
 			e.printStackTrace();
 		}
 	}
-
+	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -1435,6 +1406,7 @@ public class NativeHandler extends CordovaPlugin implements
 						editor.putString(PREF_ACCOUNT_NAME, accountName);
 						editor.commit();
 					}
+					
 				}
 				break;
 			}

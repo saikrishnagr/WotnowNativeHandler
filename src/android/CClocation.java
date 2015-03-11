@@ -67,7 +67,7 @@ public void run(Context my) {
 
 public static void helloWorld()
 {
-Log.v("InternetConnection", "HELLO WORLD");
+//Log.v("InternetConnection", "HELLO WORLD");
 }
 
 

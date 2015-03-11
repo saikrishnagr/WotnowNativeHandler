@@ -79,7 +79,7 @@ public class UserDetailsActivity extends Activity {
 					if (user != null) {
 						// Create a JSON object to hold the profile info
 						JSONObject userProfile = new JSONObject();
-						Log.v("FBuserProfileresponse", response + "");
+						//Log.v("FBuserProfileresponse", response + "");
 					
 						try {
 							// Populate the JSON object
@@ -107,7 +107,7 @@ public class UserDetailsActivity extends Activity {
 
 							// Show the user info
 							updateViewsWithProfileInfo();
-							Log.v("FBuserProfile", userProfile + "");
+							//Log.v("FBuserProfile", userProfile + "");
 						} catch (JSONException e) {
 							Log.d(IntegratingFacebookApplication.TAG, "Error parsing returned user data. " + e);
 						}

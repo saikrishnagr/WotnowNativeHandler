@@ -23,7 +23,7 @@ import com.google.api.services.calendar.model.CalendarListEntry;
  * 
  * @author Yaniv Inbar
  */
-class CalendarInfo implements Comparable<CalendarInfo>, Cloneable {
+public class CalendarInfo implements Comparable<CalendarInfo>, Cloneable {
 
   static final String FIELDS = "id,summary";
   static final String FEED_FIELDS = "items(" + FIELDS + ")";

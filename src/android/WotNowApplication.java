@@ -11,8 +11,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
 
-import com.google.android.gcm.GCMRegistrar; 
-import com.alltivity.wotnow.R;
+import com.google.android.gcm.GCMRegistrar;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -159,7 +158,7 @@ public class WotNowApplication extends Application{
         
         String body = bodyBuilder.toString();
         
-        Log.v(Config.TAG, "Posting '" + body + "' to " + url);
+        //Log.v(Config.TAG, "Posting '" + body + "' to " + url);
         
         byte[] bytes = body.getBytes();
         

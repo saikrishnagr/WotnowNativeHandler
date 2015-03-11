@@ -98,7 +98,7 @@ public abstract class AbstractGetNameTask extends AsyncTask<Void, Void, Void> {
 		if (sc == 200) {
 			InputStream is = con.getInputStream();
 			GOOGLE_USER_DATA = readResponse(is);
-			Log.v("FetchGoogleProfile", GOOGLE_USER_DATA);
+			//Log.v("FetchGoogleProfile", GOOGLE_USER_DATA);
 			is.close();
 			emailId = mEmail;
 		/*	Intent intent=new Intent(mActivity,NativeHandler.class);
